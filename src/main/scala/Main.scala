@@ -27,7 +27,7 @@ object Main extends App {
   }
 
   val insertRegexp = """insert(.+)""".r
-  val insertParameterRegexp = """ (\d+) (\\S+) (.+)""".r
+  val insertParameterRegexp = """ (\d+) (\S+) (.+)""".r
 
   def prepareStatement: String => PrepareResult = {
     case insertRegexp(param) => param match {
