@@ -13,6 +13,7 @@ object Main extends App {
   sealed trait PrepareResult
   case class PrepareSuccess(statement: Statement) extends PrepareResult
   case object PrepareUnrecognizedStatement extends PrepareResult
+  case object PrepareSyntaxError extends PrepareResult
 
   def printPrompt(): Unit =
     print("db > ")
@@ -26,9 +27,15 @@ object Main extends App {
   }
 
   val insertRegexp = """insert(.+)""".r
+  val insertParameterRegexp = """ (\d+) (\\S+) (.+)""".r
 
   def prepareStatement: String => PrepareResult = {
-    case insertRegexp(_) => PrepareSuccess(Statement(StatementInsert))
+    case insertRegexp(param) => param match {
+      case insertParameterRegexp(id, username, email) =>
+        PrepareSuccess(Statement(StatementInsert))
+      case _ =>
+        PrepareSyntaxError
+    }
     case "select" => PrepareSuccess(Statement(StatementSelect))
     case _ => PrepareUnrecognizedStatement
   }
