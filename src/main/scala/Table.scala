@@ -1,9 +1,9 @@
 import Table.Page
 
 class Table(
-             numRows: Long,
-             pages: Vector[Page]
-           ) {
+    numRows: Long,
+    pages: Vector[Page]
+) {
   //def +(row: Row): Either[RuntimeException, Table] = {
   //  if (numRows >= 100) {
   //    Left(new RuntimeException("exceed page size"))
@@ -18,10 +18,10 @@ object Table {
   type Page = Vector[Row]
 
   case class Row(
-                  id: Long,
-                  username: String,
-                  email: String
-                ) {
+      id: Long,
+      username: String,
+      email: String
+  ) {
     require(0 <= id && id <= 4294967295L, "invalid id size")
     require(username.lengthIs <= 32, "invalid username size")
     require(email.lengthIs <= 255, "invalid email size")

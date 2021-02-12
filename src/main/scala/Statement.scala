@@ -9,5 +9,3 @@ object Statement {
 
   case object Select extends Type
 }
-
-
