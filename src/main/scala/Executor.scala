@@ -6,13 +6,12 @@ object Executor {
 
   case object Success extends Result
 
-  def execute(statement: Statement): Result = statement.sType match {
+  def execute(statement: Statement)(implicit table: Table): Result = statement.sType match {
     case Statement.Insert(_) =>
       println("This is where we would do an insert.")
-      executeInsert(statement, ???)
+      executeInsert(statement, table)
     case Statement.Select =>
-      println("This is where we would do an select.")
-      executeSelect(statement, ???)
+      executeSelect(statement, table)
   }
 
   private def executeInsert(statement: Statement, table: Table): Result = {
@@ -20,6 +19,8 @@ object Executor {
   }
 
   private def executeSelect(statement: Statement, table: Table): Result = {
-    ???
+    table.pages.flatten.foreach(println)
+
+    Success
   }
 }

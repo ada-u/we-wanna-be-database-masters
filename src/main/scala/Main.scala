@@ -1,6 +1,11 @@
 import Parser.prepareStatement
 
 object Main extends App {
+  implicit val table: Table = new Table(1, Vector(Vector(Table.Row(
+    0,
+    "Tajiri",
+    "tajiri@xxx.com"
+  ))))
 
   def printPrompt(): Unit =
     print("db > ")
