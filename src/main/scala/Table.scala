@@ -21,6 +21,15 @@ object Table {
 
   type Page = Vector[Row]
 
+  val PAGE_SIZE = 4096
+  val TABLE_MAX_PAGES = 100
+  val ROWS_PER_PAGE = PAGE_SIZE / Row.ROW_SIZE
+  val TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES
+
+  object Row {
+    val ROW_SIZE = 512
+  }
+
   case class Row(
       id: Long,
       username: String,
