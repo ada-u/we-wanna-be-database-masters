@@ -1,11 +1,18 @@
 import Parser.prepareStatement
 
 object Main extends App {
-  implicit val table: Table = new Table(1, Vector(Vector(Table.Row(
-    0,
-    "Tajiri",
-    "tajiri@xxx.com"
-  ))))
+  var table: Table = new Table(
+    1,
+    Vector(
+      Vector(
+        Table.Row(
+          0,
+          "Tajiri",
+          "tajiri@xxx.com"
+        )
+      )
+    )
+  )
 
   def printPrompt(): Unit =
     print("db > ")
@@ -25,8 +32,13 @@ object Main extends App {
       case rawStatement =>
         prepareStatement(rawStatement) match {
           case Parser.Success(statement) =>
-            Executor.execute(statement)
-            println("Executed.")
+            Executor.execute(statement, table) match {
+              case Executor.TableFull =>
+                println("Error: Table full.")
+              case Executor.Success(newTable) =>
+                this.table = newTable
+                println("Executed.")
+            }
           case Parser.UnrecognizedStatement =>
             println(s"Unrecognized keyword at start of '$rawStatement'")
           case Parser.SyntaxError =>

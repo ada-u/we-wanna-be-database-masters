@@ -30,3 +30,5 @@ dump.rdb
 # scalameta/metals
 .metals
 .bloop
+.bsp
+metals.sbt
