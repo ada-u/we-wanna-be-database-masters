@@ -13,12 +13,25 @@ object Parser {
 
   case object SyntaxError extends Result
 
+  case object NegativeIdError extends Result
+
+  case object StringTooLongError extends Result
+
   def prepareStatement: String => Result = {
     case insertRegexp(param) =>
       param match {
-        case insertParameterRegexp(id, username, email) =>
-          val row = Row(id.toLong, username, email)
-          Success(Statement(Statement.Insert(row)))
+        case insertParameterRegexp(id, _, _) if id.toLong < 0 =>
+          NegativeIdError
+        case insertParameterRegexp(idString, username, email) =>
+          val id = idString.toLong
+          if (id < 0)
+            NegativeIdError
+          else if (username.lengthIs > Row.USERNAME_LENGTH)
+            StringTooLongError
+          else if (email.lengthIs > Row.EMAIL_LENGTH)
+            StringTooLongError
+          else
+            Success(Statement(Statement.Insert(Row(id, username, email))))
         case _ =>
           SyntaxError
       }

@@ -33,6 +33,9 @@ object Table {
 
   object Row {
     val ROW_SIZE = 512
+
+    val USERNAME_LENGTH = 32
+    val EMAIL_LENGTH    = 255
   }
 
   case class Row(
@@ -40,9 +43,11 @@ object Table {
       username: String,
       email: String
   ) {
+    import Row._
+
     require(0 <= id && id <= 4294967295L, "invalid id size")
-    require(username.lengthIs <= 32, "invalid username size")
-    require(email.lengthIs <= 255, "invalid email size")
+    require(username.lengthIs <= USERNAME_LENGTH, "invalid username size")
+    require(email.lengthIs <= EMAIL_LENGTH, "invalid email size")
 
     override def toString: String =
       s"($id, $username, $email)"
