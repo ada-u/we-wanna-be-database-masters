@@ -1,18 +1,10 @@
 import Parser.prepareStatement
 
 object Main extends App {
-  var table: Table = new Table(
-    1,
-    Vector(
-      Vector(
-        Table.Row(
-          0,
-          "Tajiri",
-          "tajiri@xxx.com"
-        )
-      )
-    )
-  )
+
+  val fileName: String = args.head
+
+  var table: Table = Table(fileName)
 
   def printPrompt(): Unit =
     print("db > ")

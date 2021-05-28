@@ -1,14 +1,15 @@
 import Table.Page
 
+import java.io.{ FileInputStream, ObjectInputStream }
+
 case class Table(
     numRows: Long,
-    //pages: Vector[Page]
     pager: Pager
 ) {
 
   import Table._
 
-  private val pages = pager.pages
+  val pages: Vector[Page] = pager.pages
 
   def insert(row: Row): Either[RuntimeException, Table] =
     if (numRows < TABLE_MAX_ROWS) {
@@ -34,11 +35,12 @@ object Table {
   val ROWS_PER_PAGE   = PAGE_SIZE / Row.ROW_SIZE
   val TABLE_MAX_ROWS  = ROWS_PER_PAGE * TABLE_MAX_PAGES
 
-  def apply(): Table = new Table(0L, Pager(Vector.empty))
-
   def apply(fileName: String): Table = {
-    val pager   = Pager(fileName)
-    val numRows = pager.numRows(Row.ROW_SIZE)
+    val ois          = new ObjectInputStream(new FileInputStream(fileName))
+    val pager: Pager = ois.readObject.asInstanceOf[Pager]
+    ois.close()
+
+    val numRows = pager.pages.map(_.size).sum
 
     new Table(numRows, pager)
   }
@@ -66,20 +68,5 @@ object Table {
   }
 }
 
-case class Pager(pages: Vector[Page], fileLength: Int) {
-
-  def numRows(rowSize: Int): Int =
-    fileLength / rowSize
-}
-
-object Pager {
-  def apply(fileName: String): Pager = {
-
-    // e.g. https://docs.oracle.com/javase/jp/8/docs/api/java/nio/file/Files.html#newByteChannel-java.nio.file.Path-java.util.Set-java.nio.file.attribute.FileAttribute...-
-    // // create file with initial permissions, opening it for both reading and writing
-    // FileAttribute<Set<PosixFilePermission>> perms = ...
-    // SeekableByteChannel sbc = Files.newByteChannel(path, EnumSet.of(CREATE_NEW,READ,WRITE), perms);
-
-//    Pager(Vector.empty, 0)
-  }
-}
+@SerialVersionUID(0L)
+case class Pager(pages: Vector[Page])

@@ -32,3 +32,6 @@ dump.rdb
 .bloop
 .bsp
 metals.sbt
+
+# db
+*.adb
