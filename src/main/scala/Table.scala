@@ -1,5 +1,6 @@
 import Table.Page
 
+import scala.util.{ Failure, Success, Try }
 import java.io.{ FileInputStream, ObjectInputStream }
 
 case class Table(
@@ -35,14 +36,24 @@ object Table {
   val ROWS_PER_PAGE   = PAGE_SIZE / Row.ROW_SIZE
   val TABLE_MAX_ROWS  = ROWS_PER_PAGE * TABLE_MAX_PAGES
 
+  def empty: Table = {
+    Table(0, Pager.empty)
+  }
+
   def apply(fileName: String): Table = {
-    val ois          = new ObjectInputStream(new FileInputStream(fileName))
-    val pager: Pager = ois.readObject.asInstanceOf[Pager]
-    ois.close()
+    val pagerTry = for {
+      fileInputStream <- Try(new FileInputStream(fileName))
+      objectInputStream = new ObjectInputStream(fileInputStream)
+      pager: Pager      = objectInputStream.readObject.asInstanceOf[Pager]
+      _                 = objectInputStream.close()
+    } yield pager
 
-    val numRows = pager.pages.map(_.size).sum
-
-    new Table(numRows, pager)
+    pagerTry match {
+      case Failure(_) => Table.empty // ここは読み込み処理なので、ファイル作成までは担わない
+      case Success(pager) =>
+        val numRows = pager.pages.map(_.size).sum
+        Table(numRows, pager)
+    }
   }
 
   object Row {
@@ -70,3 +81,7 @@ object Table {
 
 @SerialVersionUID(0L)
 case class Pager(pages: Vector[Page])
+
+object Pager {
+  def empty: Pager = Pager(Vector.empty)
+}
