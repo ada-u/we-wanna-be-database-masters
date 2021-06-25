@@ -1,12 +1,12 @@
 import Table.Page
 
 import scala.util.{ Failure, Success, Try }
-import java.io.{ FileInputStream, ObjectInputStream }
+import java.io.{ FileInputStream, ObjectInputStream, RandomAccessFile }
 
 case class Table(
     numRows: Long,
     pager: Pager
-) {
+)(implicit private val outputFile: RandomAccessFile) {
 
   import Table._
 
@@ -36,11 +36,11 @@ object Table {
   val ROWS_PER_PAGE   = PAGE_SIZE / Row.ROW_SIZE
   val TABLE_MAX_ROWS  = ROWS_PER_PAGE * TABLE_MAX_PAGES
 
-  def empty: Table = {
+  def init(implicit outputFile: RandomAccessFile): Table = {
     Table(0, Pager.empty)
   }
 
-  def apply(fileName: String): Table = {
+  def apply(fileName: String)(implicit outputFile: RandomAccessFile): Table = {
     val pagerTry = for {
       fileInputStream <- Try(new FileInputStream(fileName))
       objectInputStream = new ObjectInputStream(fileInputStream)
@@ -49,7 +49,7 @@ object Table {
     } yield pager
 
     pagerTry match {
-      case Failure(_) => Table.empty // ここは読み込み処理なので、ファイル作成までは担わない
+      case Failure(_) => Table.init // ここは読み込み処理なので、ファイル作成までは担わない
       case Success(pager) =>
         val numRows = pager.pages.map(_.size).sum
         Table(numRows, pager)
