@@ -1,18 +1,26 @@
 import Table.Page
 
 import scala.util.{ Failure, Success, Try }
-import java.io.{ FileInputStream, ObjectInputStream, RandomAccessFile }
+import java.io.{
+  File,
+  FileInputStream,
+  FileNotFoundException,
+  FileOutputStream,
+  ObjectInputStream,
+  ObjectOutputStream,
+  RandomAccessFile
+}
 
 case class Table(
     numRows: Long,
     pager: Pager
-)(implicit private val outputFile: RandomAccessFile) {
+) {
 
   import Table._
 
   val pages: Vector[Page] = pager.pages
 
-  def insert(row: Row): Either[RuntimeException, Table] =
+  def insert(row: Row): Either[Throwable, Table] =
     if (numRows < TABLE_MAX_ROWS) {
       val newPages: Vector[Page] =
         if (pages.lastOption.exists(_.lengthIs < ROWS_PER_PAGE)) {
@@ -21,7 +29,18 @@ case class Table(
 
         } else pages :+ Vector(row)
 
-      Right(Table(numRows + 1, Pager(newPages)))
+      // Pagerに包んでから保存するひつようあり
+      val newPager = Pager(newPages)
+
+      Try {
+        val f = new FileOutputStream(new File("unko.adb"))
+        val o = new ObjectOutputStream(f)
+
+        o.writeObject(newPager)
+        o.close()
+        f.close()
+        Table(numRows + 1, newPager)
+      }.toEither
 
     } else Left(new RuntimeException("exceed page size"))
 
@@ -36,11 +55,11 @@ object Table {
   val ROWS_PER_PAGE   = PAGE_SIZE / Row.ROW_SIZE
   val TABLE_MAX_ROWS  = ROWS_PER_PAGE * TABLE_MAX_PAGES
 
-  def init(implicit outputFile: RandomAccessFile): Table = {
+  def init: Table = {
     Table(0, Pager.empty)
   }
 
-  def apply(fileName: String)(implicit outputFile: RandomAccessFile): Table = {
+  def apply(fileName: String): Table = {
     val pagerTry = for {
       fileInputStream <- Try(new FileInputStream(fileName))
       objectInputStream = new ObjectInputStream(fileInputStream)
@@ -49,10 +68,13 @@ object Table {
     } yield pager
 
     pagerTry match {
-      case Failure(_) => Table.init // ここは読み込み処理なので、ファイル作成までは担わない
       case Success(pager) =>
         val numRows = pager.pages.map(_.size).sum
         Table(numRows, pager)
+      case Failure(_: FileNotFoundException) =>
+        Table.init // ここは読み込み処理なので、ファイル作成までは担わない
+      case Failure(e) =>
+        throw e
     }
   }
 

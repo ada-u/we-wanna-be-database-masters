@@ -5,7 +5,7 @@ import Parser.prepareStatement
 object Main extends App {
 
   val fileName: String = args.head
-  implicit val outputFile: RandomAccessFile = new RandomAccessFile(fileName, "rw")
+//  implicit val outputFile: RandomAccessFile = new RandomAccessFile(fileName, "rw")
 
   var table: Table = Table(fileName)
 
