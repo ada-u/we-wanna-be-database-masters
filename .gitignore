@@ -34,4 +34,4 @@ dump.rdb
 metals.sbt
 
 # db
-*.adb
+*.json

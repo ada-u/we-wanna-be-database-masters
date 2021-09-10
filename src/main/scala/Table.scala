@@ -1,21 +1,16 @@
 import Table.Page
 
+import java.io.{ File, FileNotFoundException, FileWriter }
 import scala.util.{ Failure, Success, Try }
-import java.io.{
-  File,
-  FileInputStream,
-  FileNotFoundException,
-  FileOutputStream,
-  ObjectInputStream,
-  ObjectOutputStream,
-  RandomAccessFile
-}
+
+import io.circe.generic.auto._
+import io.circe.syntax._
+import io.circe.parser._
 
 case class Table(
     numRows: Long,
     pager: Pager
 ) {
-
   import Table._
 
   val pages: Vector[Page] = pager.pages
@@ -34,11 +29,9 @@ case class Table(
       val newPager = Pager(newPages)
 
       Try {
-        val f = new FileOutputStream(new File("unko.json"))
-        val o = new ObjectOutputStream(f)
+        val f = new FileWriter(new File("unko.json"))
 
-        o.writeObject(newPager)
-        o.close()
+        f.write(newPager.asJson.noSpaces)
         f.close()
         Table(numRows + 1, newPager)
       }.toEither
@@ -51,19 +44,19 @@ object Table {
 
   type Page = Vector[Row]
 
-  val PAGE_SIZE       = 4096
-  val TABLE_MAX_PAGES = 100
-  val ROWS_PER_PAGE   = PAGE_SIZE / Row.ROW_SIZE
-  val TABLE_MAX_ROWS  = ROWS_PER_PAGE * TABLE_MAX_PAGES
+  val PAGE_SIZE           = 4096
+  val TABLE_MAX_PAGES     = 100
+  val ROWS_PER_PAGE: Int  = PAGE_SIZE / Row.ROW_SIZE
+  val TABLE_MAX_ROWS: Int = ROWS_PER_PAGE * TABLE_MAX_PAGES
 
   def init: Table = Table(0, Pager.empty)
 
   def apply(fileName: String): Table = {
     val pagerTry = for {
-      fileInputStream <- Try(new FileInputStream(fileName))
-      objectInputStream = new ObjectInputStream(fileInputStream)
-      pager: Pager      = objectInputStream.readObject.asInstanceOf[Pager]
-      _                 = objectInputStream.close()
+      source <- Try(scala.io.Source.fromFile(fileName))
+      rawString = source.getLines().mkString
+      _         = source.close()
+      pager <- decode[Pager](rawString).toTry
     } yield pager
 
     pagerTry match {
@@ -100,7 +93,6 @@ object Table {
   }
 }
 
-@SerialVersionUID(0L)
 case class Pager(pages: Vector[Page])
 
 object Pager {

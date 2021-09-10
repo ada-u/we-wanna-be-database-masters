@@ -11,7 +11,7 @@ object Main extends App {
   Iterator
     .continually {
       printPrompt()
-      io.StdIn.readLine()
+      scala.io.StdIn.readLine()
     }
     .foreach {
       case MetaCommand.regexp(metaCommand) =>
