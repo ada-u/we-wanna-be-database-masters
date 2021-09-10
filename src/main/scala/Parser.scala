@@ -20,8 +20,6 @@ object Parser {
   def prepareStatement: String => Result = {
     case insertRegexp(param) =>
       param match {
-        case insertParameterRegexp(id, _, _) if id.toLong < 0 =>
-          NegativeIdError
         case insertParameterRegexp(idString, username, email) =>
           val id = idString.toLong
           if (id < 0)

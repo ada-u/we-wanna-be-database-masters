@@ -21,7 +21,8 @@ case class Table(
   val pages: Vector[Page] = pager.pages
 
   def insert(row: Row): Either[Throwable, Table] =
-    if (numRows < TABLE_MAX_ROWS) {
+    if (numRows >= TABLE_MAX_ROWS) Left(new RuntimeException("exceed page size"))
+    else {
       val newPages: Vector[Page] =
         if (pages.lastOption.exists(_.lengthIs < ROWS_PER_PAGE)) {
           val newLastPage = pages.last :+ row
@@ -33,7 +34,7 @@ case class Table(
       val newPager = Pager(newPages)
 
       Try {
-        val f = new FileOutputStream(new File("unko.adb"))
+        val f = new FileOutputStream(new File("unko.json"))
         val o = new ObjectOutputStream(f)
 
         o.writeObject(newPager)
@@ -42,7 +43,7 @@ case class Table(
         Table(numRows + 1, newPager)
       }.toEither
 
-    } else Left(new RuntimeException("exceed page size"))
+    }
 
 }
 
@@ -55,9 +56,7 @@ object Table {
   val ROWS_PER_PAGE   = PAGE_SIZE / Row.ROW_SIZE
   val TABLE_MAX_ROWS  = ROWS_PER_PAGE * TABLE_MAX_PAGES
 
-  def init: Table = {
-    Table(0, Pager.empty)
-  }
+  def init: Table = Table(0, Pager.empty)
 
   def apply(fileName: String): Table = {
     val pagerTry = for {

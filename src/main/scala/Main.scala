@@ -1,13 +1,9 @@
-import java.io.{ RandomAccessFile }
-
 import Parser.prepareStatement
 
 object Main extends App {
 
   val fileName: String = args.head
-//  implicit val outputFile: RandomAccessFile = new RandomAccessFile(fileName, "rw")
-
-  var table: Table = Table(fileName)
+  var table: Table     = Table(fileName)
 
   def printPrompt(): Unit =
     print("db > ")
@@ -34,10 +30,10 @@ object Main extends App {
                 this.table = newTable
                 println("Executed.")
             }
-          case Parser.UnrecognizedStatement =>
-            println(s"Unrecognized keyword at start of '$rawStatement'")
-          case Parser.SyntaxError =>
-            println(s"Syntax error. Could not parse statement.")
+          case Parser.UnrecognizedStatement => println(s"Unrecognized keyword at start of '$rawStatement'")
+          case Parser.SyntaxError           => println("Syntax error. Could not parse statement.")
+          case Parser.NegativeIdError       => println("Negative id error.")
+          case Parser.StringTooLongError    => println("String too long error.")
         }
     }
 

@@ -9,10 +9,8 @@ object Executor {
   case class Success(table: Table) extends Result
 
   def execute(statement: Statement, table: Table): Result = statement.sType match {
-    case Statement.Insert(rowToInsert) =>
-      executeInsert(rowToInsert, table)
-    case Statement.Select =>
-      executeSelect(statement, table)
+    case Statement.Insert(rowToInsert) => executeInsert(rowToInsert, table)
+    case Statement.Select              => executeSelect(table)
   }
 
   private def executeInsert(row: Row, table: Table): Result =
@@ -21,7 +19,7 @@ object Executor {
       case Right(table) => Success(table)
     }
 
-  private def executeSelect(statement: Statement, table: Table): Result = {
+  private def executeSelect(table: Table): Result = {
     table.pages.flatten.foreach(println)
 
     Success(table)
